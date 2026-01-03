@@ -2,48 +2,34 @@ import os
 import argparse
 import sys
 
-def parse_replace(arg):
-    """
-    Parse replacement argument.
-    Accepts: 'old/new'  or  old/new  (recommended with single quotes in shell)
-    Also accepts "old/new" or old-new if no / is used.
-    """
-    if arg.startswith("'") and arg.endswith("'"):
-        arg = arg[1:-1]
-    elif arg.startswith('"') and arg.endswith('"'):
-        arg = arg[1:-1]
-    
-    if '/' not in arg and '-' not in arg:
-        raise argparse.ArgumentTypeError("Replacement must contain either '/' or '-' as separator")
-    if arg.count('/') + arg.count('-') != 1:
-        raise argparse.ArgumentTypeError("Replacement must have exactly one separator ('/' or '-')")
-    
-    if '/' in arg:
-        old, new = arg.split('/', 1)
-    else:
-        old, new = arg.split('-', 1)
-    
-    return old, new
-
 parser = argparse.ArgumentParser(
-    description="Batch rename files with prefix, suffix, or substring replacement.",
+    description="Batch rename files with flexible replacement options: substring, prefix, or suffix.",
     epilog="""
 Examples:
-  python rename_files.py -r '16k/33k'                  # Replace '16k' with '33k' in filenames
-  python rename_files.py -p 'OLD_/NEW_'               # Change prefix using /
-  python rename_files.py -r "bad-good" -t "mp4,mp3"   # Works with - and double quotes
+  python rename_files.py -r -o "16k" -n "33k"                     # Replace all occurrences of '16k' with '33k'
+  python rename_files.py -p -o "OLD_" -n "NEW_"                   # Replace prefix only
+  python rename_files.py -s -o ".temp" -n ""                      # Remove suffix '.temp'
+  python rename_files.py -r -o "(320)" -n "" -t "mp3,flac"        # Remove '(320)' from audio files
+  python rename_files.py -p -o "TEMP-" -n "" .                    # Remove prefix 'TEMP-'
     """
 )
 
-parser.add_argument('-p', type=parse_replace, metavar="'old/new'", 
-                    help="Replace prefix: files starting with 'old' → 'new'")
-parser.add_argument('-s', type=parse_replace, metavar="'old/new'", 
-                    help="Replace suffix: files ending with 'old' → 'new'")
-parser.add_argument('-r', type=parse_replace, metavar="'old/new'", 
-                    help="Replace substring: all occurrences of 'old' → 'new'")
-parser.add_argument('-t', metavar="ext1,ext2,...", 
-                    help="Only process these extensions (no dot, comma-separated)")
-parser.add_argument('directory', nargs='?', default='.', 
+# Mode selection (mutually exclusive group)
+mode_group = parser.add_mutually_exclusive_group(required=True)
+mode_group.add_argument('-r', '--replace', action='store_true',
+                        help="Replace all occurrences of 'old' with 'new' in filename (default behavior if none specified)")
+mode_group.add_argument('-p', '--prefix', action='store_true',
+                        help="Replace only if 'old' is the prefix (start of filename)")
+mode_group.add_argument('-s', '--suffix', action='store_true',
+                        help="Replace only if 'old' is the suffix (end of filename)")
+
+parser.add_argument('-o', '--old', required=True, metavar='"old"',
+                    help="The string to find and remove/replace (required)")
+parser.add_argument('-n', '--new', required=True, metavar='"new"',
+                    help="The string to replace with (use empty quotes \"\" to remove)")
+parser.add_argument('-t', metavar="ext1,ext2,...",
+                    help="Only process files with these extensions (no dot, comma-separated, e.g. mp3,m4a,flac)")
+parser.add_argument('directory', nargs='?', default='.',
                     help="Directory to process (default: current directory)")
 
 args = parser.parse_args()
@@ -54,36 +40,32 @@ if not os.path.isdir(dir_path):
     print(f"Error: '{dir_path}' is not a valid directory.")
     sys.exit(1)
 
+# Determine mode
+if args.prefix:
+    mode = 'prefix'
+    mode_name = "Prefix"
+elif args.suffix:
+    mode = 'suffix'
+    mode_name = "Suffix"
+else:  # -r or default
+    mode = 'replace'
+    mode_name = "All occurrences (substring)"
+
 # Parse extensions
 extensions = None
 if args.t:
     extensions = {ext.strip().lower() for ext in args.t.split(',') if ext.strip()}
+    print(f"Processing only extensions: {', '.join(sorted(extensions))}\n")
 
-# Collect and display rules
-replacements = []
-print("Replacement rules applied:\n")
-
-if args.p:
-    old, new = args.p
-    print(f"  Prefix:  '{old}'  →  '{new}'")
-    replacements.append(('prefix', old, new))
-
-if args.s:
-    old, new = args.s
-    print(f"  Suffix:  '{old}'  →  '{new}'")
-    replacements.append(('suffix', old, new))
-
-if args.r:
-    old, new = args.r
-    print(f"  Contain: '{old}'  →  '{new}'  (all occurrences)")
-    replacements.append(('contain', old, new))
-
-if not replacements:
-    print("Error: No replacement option (-p, -s, or -r) provided.")
-    parser.print_help()
-    sys.exit(1)
-
-print()
+# Display the operation
+print("Replacement rule:\n")
+print(f"  Mode:    {mode_name}")
+print(f"  Find:    '{args.old}'")
+print(f"  Replace: '{args.new}'")
+if args.new == "":
+    print("           (this will remove the string entirely)\n")
+else:
+    print()
 
 # Get files
 files = [f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f))]
@@ -96,10 +78,9 @@ if extensions:
         if ext[1:].lower() in extensions:
             filtered.append(f)
     files = filtered
-    print(f"Processing only extensions: {', '.join(sorted(extensions))}\n")
 
 if not files:
-    print("No matching files found.")
+    print("No matching files found in the directory.")
     sys.exit(0)
 
 # Compute proposed renames
@@ -109,34 +90,33 @@ skipped = []
 for filename in files:
     new_name = filename
     changed = False
-    for typ, old, new in replacements:
-        if typ == 'prefix' and new_name.startswith(old):
-            new_name = new + new_name[len(old):]
+
+    if mode == 'prefix' and filename.startswith(args.old):
+        new_name = args.new + filename[len(args.old):]
+        changed = True
+    elif mode == 'suffix' and filename.endswith(args.old):
+        new_name = filename[:-len(args.old)] + args.new
+        changed = True
+    elif mode == 'replace':
+        if args.old in filename:
+            new_name = filename.replace(args.old, args.new)
             changed = True
-        elif typ == 'suffix' and new_name.endswith(old):
-            new_name = new_name[:-len(old)] + new
-            changed = True
-        elif typ == 'contain':
-            if old in new_name:
-                new_name = new_name.replace(old, new)
-                changed = True
-    
+
     if changed and new_name != filename:
         target_path = os.path.join(dir_path, new_name)
         if os.path.exists(target_path):
-            skipped.append((filename, new_name, "target exists"))
+            skipped.append((filename, new_name, "target already exists"))
         else:
             renames.append((filename, new_name))
-    # If no change, do nothing
 
-# Show skips first
+# Show skipped
 if skipped:
     print(f"{len(skipped)} file(s) skipped (target name already exists):\n")
     for old, new, reason in skipped:
         print(f"  {old}  →  {new}  ({reason})")
     print()
 
-# Show actual renames
+# Show planned renames
 if not renames:
     print("No files need renaming.")
     sys.exit(0)
@@ -146,7 +126,7 @@ for old, new in renames:
     print(f"  {old}  →  {new}")
 print()
 
-# Confirmation with total count clearly shown
+# Confirmation with total count
 total_to_rename = len(renames)
 print(f"Total files to be renamed: {total_to_rename}\n")
 
