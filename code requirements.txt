@@ -1,11 +1,9 @@
-
 for metadata_modify.py
 1.python code to modify metadata for mp3, mp4, m4a, opus etc. --type "mp3, mp4, m4a, opus", --bitrate "128k" --datemodified "yyyymmdd-hh:mm",
 
 2. info about files has names modified and → should be in green color.
 
 3. --keyword "keyword" or -k "keyword", only show info about related files. those files names doesn't contain keyword shouldn't display.
-
 
 4. --recursive (-r) ; add switch --recursive to allow recursive execution. otherwise only work on the specified path or PWD. give complete new code
 
@@ -17,7 +15,10 @@ If omitted → processes only the top-level directory (no subfolders).
 If neither --path nor --path-list is provided → defaults to the current working directory (PWD).
 --path and --path-list remain mutually exclusive.
 
-give full complete code.
+
+6.  ⏭️🎉✅ these signs could be properly displayed in powershell window? use colorful display for program output. Give complete new code for succinct version.
+
+give complete code.
 
 
 
@@ -42,10 +43,12 @@ If neither --path nor --path-list is provided → defaults to the current workin
 6. For the info display before confirmation of execution, the text (to be)removed from filename should be in red background color, the ones (to be) added in green background color.
 For the info display after execution, the text removed from filename should be in red background color, the ones added in green background color.
 
+⏭️🎉✅ these signs could be properly displayed in powershell window? use colorful display for program output. Give complete new code for succinct version.
+
 7. display full path for the original name before →
 
 
- give complete new code
+ give complete code
 
 
 for filenames_append.py
@@ -68,13 +71,15 @@ If neither --path nor --path-list is provided → defaults to the current workin
 6. For the info display before confirmation of execution, the text (to be)removed from filename should be in red background color, the ones (to be) added in green background color.
 For the info display after execution, the text removed from filename should be in red background color, the ones added in green background color.
 
+⏭️🎉✅ these signs could be properly displayed in powershell window? use colorful display for program output. Give complete new code for succinct version.
+
 7. display full path for the original name before →
 
 8. If file already ends with r'_\d+k', audio bit rate info already exists, appending r'_\d+k' would be skipped.
 
 9. detect and delete duplicate converted files. 
 
- give complete new code
+ give complete code
 
 
 
@@ -107,6 +112,8 @@ If neither --path nor --path-list is provided → defaults to the current workin
 6. For the info display before confirmation of execution, the text (to be)removed from filename should be in red background color, the ones (to be) added in green background color.
 For the info display after execution, the text removed from filename should be in red background color, the ones added in green background color.
 
+⏭️🎉✅ these signs could be properly displayed in powershell window? use colorful display for program output. Give complete new code for succinct version.
+
 7. display full path for the original name before →. Drive letter should show in the full path.
 
 8. Music16k\皇帝圆舞曲_16k.opus → 皇帝圆舞曲__16k.opus this shouldn't be. -o "16k" -n "_16k", the old pattern should be exact match, not a substring. consecutive repetitions of "16k" or "_16k" would together be replaced by "_16k". If repetitions needed, the exact repetitions like "$ $ " would be used instead of "$ ". If there are repetitions, not matching the command line parameter, correct them.
@@ -115,4 +122,4 @@ For the info display after execution, the text removed from filename should be i
 
 10. When mutiple files have same name (option info, resolution info removed) but have different audio bit rate(not identified from filename, identified from system info), keep all and append "_xxk" to end of filename. copy the extension. If they have same audio bit rate, only keep the one has (shortest) filename with no bit rate info and append  "_xxk" to end of filename.
 
- give complete new code
+ give complete code
