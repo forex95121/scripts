@@ -1,0 +1,96 @@
+
+for filenames_rename.py
+
+1. The files containing "chill city pop $ $ " were having multiple "$ " the code should be able to fix repititions. If repetitions needed, the exact repetitions like "$ $ " would be used instead of "$ ". If there are repetitions, not matching the command line parameter, correct them.
+
+2. info about files has names modified and → should be in green color.
+
+3. only show info about related files. those files names doesn't contain keyword shouldn't display.
+
+4. --recursive (-r) ; add switch --recursively "x", x is either y or none 0, to allow recursive execution. ohterwise only work on the specified path or PWD. give complete new code
+
+If provided → processes recursively (all subdirectories).
+If omitted → processes only the top-level directory (no subfolders).
+
+5. -p "path", -l "any.txt" or --path-list "any.txt" to provide directory to work on.
+
+If neither --path nor --path-list is provided → defaults to the current working directory (PWD).
+--path and --path-list remain mutually exclusive.
+
+6. For the info display before confirmation of execution, the text (to be)removed from filename should be in red background color, the ones (to be) added in green background color.
+For the info display after execution, the text removed from filename should be in red background color, the ones added in green background color.
+
+7. display full path for the original name before →
+
+
+ give complete new code
+
+
+for filenames_append.py
+1. The files containing "chill city pop $ $ " were having multiple "$ " the code should be able to fix repititions. If repetitions needed, the exact repetitions like "$ $ " would be used instead of "$ ". If there are repetitions, not matching the command line parameter, correct them.
+
+2. info about files has names modified and → should be in green color.
+
+3. only show info about related files. those files names doesn't contain keyword shouldn't display.
+
+4. --recursive (-r) ; add switch --recursively "x", x is either y or none 0, to allow recursive execution. ohterwise only work on the specified path or PWD. give complete new code
+
+If provided → processes recursively (all subdirectories).
+If omitted → processes only the top-level directory (no subfolders).
+
+5. -p "path", -l "any.txt" or --path-list "any.txt" to provide directory to work on.
+
+If neither --path nor --path-list is provided → defaults to the current working directory (PWD).
+--path and --path-list remain mutually exclusive.
+
+6. For the info display before confirmation of execution, the text (to be)removed from filename should be in red background color, the ones (to be) added in green background color.
+For the info display after execution, the text removed from filename should be in red background color, the ones added in green background color.
+
+7. display full path for the original name before →
+
+8. If file already ends with r'_\d+k', audio bit rate info already exists, appending r'_\d+k' would be skipped.
+
+9. detect and delete duplicate converted files. 
+
+ give complete new code
+
+
+
+for this filenames_clean.py
+
+1. If the cleaned target name already exists in the same folder:
+Compares file sizes.
+If the existing file is same size or larger → deletes the file being processed (assumes it's a lower or equal quality duplicate).
+If the current file is larger → skips renaming (keeps the better one).
+
+2.
+--cleanOptionInfo: removes _xxx where xxx is exactly 3 digits (e.g., _128, _320)
+--cleanBitRateInfo: removes _xxk or _xxxk (e.g., _128k, _320k)
+--cleanResolutionInfo: removes _xxxxp with any number of digits (e.g., _720p, _1080p, _4320p)
+
+3. --precision and --dry-run
+
+4. Shows renames in green, deletions in yellow, errors in red.
+
+--recursive (-r) ; add switch --recursively "x", x is either y or none 0, to allow recursive execution. ohterwise only work on the specified path or PWD. give complete new code
+
+If provided → processes recursively (all subdirectories).
+If omitted → processes only the top-level directory (no subfolders).
+
+5. --path "path", -l "any.txt" or --path-list "any.txt" to provide directory to work on.
+
+If neither --path nor --path-list is provided → defaults to the current working directory (PWD).
+--path and --path-list remain mutually exclusive.
+
+6. For the info display before confirmation of execution, the text (to be)removed from filename should be in red background color, the ones (to be) added in green background color.
+For the info display after execution, the text removed from filename should be in red background color, the ones added in green background color.
+
+7. display full path for the original name before →. Drive letter should show in the full path.
+
+8. Music16k\皇帝圆舞曲_16k.opus → 皇帝圆舞曲__16k.opus this shouldn't be. -o "16k" -n "_16k", the old pattern should be exact match, not a substring. consecutive repetitions of "16k" or "_16k" would together be replaced by "_16k". If repetitions needed, the exact repetitions like "$ $ " would be used instead of "$ ". If there are repetitions, not matching the command line parameter, correct them.
+
+9. The files containing "chill city pop $ $ " were having multiple "$ " the code should be able to fix repetitions. If repetitions needed, the exact repetitions like "$ $ " would be used instead of "$ ". If there are repetitions, not matching the command line parameter, correct them.
+
+10. When mutiple files have same name (option info, resolution info removed) but have different audio bit rate(not identified from filename, identified from system info), keep all and append "_xxk" to end of filename. copy the extension. If they have same audio bit rate, only keep the one has (shortest) filename with no bit rate info and append  "_xxk" to end of filename.
+
+ give complete new code
