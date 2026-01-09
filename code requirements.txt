@@ -1,4 +1,6 @@
 for metadata_modify.py
+0. add switch --dateFrom "yyymmdd-hh:mm:ss" --dateTo "yyymmdd-hh:mm:ss" , -hh:mm:ss is optional Give complete new code
+
 1.python code to modify metadata for mp3, mp4, m4a, opus etc. --type "mp3, mp4, m4a, opus", --bitrate "128k" --datemodified "yyyymmdd-hh:mm",
 
 2. info about files has names modified and → should be in green color.
@@ -18,11 +20,16 @@ If neither --path nor --path-list is provided → defaults to the current workin
 
 6.  ⏭️🎉✅ these signs could be properly displayed in powershell window? use colorful display for program output. Give complete new code for succinct version.
 
+provide full usage info(list all command options) both in code comment and default(no parameter) command prompt.
 give complete code.
 
 
 
+
+
 for filenames_rename.py
+0. add switch --dateFrom "yyymmdd-hh:mm:ss" --dateTo "yyymmdd-hh:mm:ss" , -hh:mm:ss is optional Give complete new code
+
 
 1. The files containing "chill city pop $ $ " were having multiple "$ " the code should be able to fix repititions. If repetitions needed, the exact repetitions like "$ $ " would be used instead of "$ ". If there are repetitions, not matching the command line parameter, correct them.
 
@@ -47,11 +54,15 @@ For the info display after execution, the text removed from filename should be i
 
 7. display full path for the original name before →
 
-
+provide full usage info(list all command options) both in code comment and default(no parameter) command prompt.
  give complete code
 
 
+
+
 for filenames_append.py
+0. add switch --dateFrom "yyymmdd-hh:mm:ss" --dateTo "yyymmdd-hh:mm:ss" , -hh:mm:ss is optional Give complete new code
+
 1. The files containing "chill city pop $ $ " were having multiple "$ " the code should be able to fix repititions. If repetitions needed, the exact repetitions like "$ $ " would be used instead of "$ ". If there are repetitions, not matching the command line parameter, correct them.
 
 2. info about files has names modified and → should be in green color.
@@ -79,11 +90,17 @@ For the info display after execution, the text removed from filename should be i
 
 9. detect and delete duplicate converted files. 
 
+provide full usage info(list all command options) both in code comment and default(no parameter) command prompt.
  give complete code
 
 
 
+
+
+
 for this filenames_clean.py
+
+0. add switch --dateFrom "yyymmdd-hh:mm:ss" --dateTo "yyymmdd-hh:mm:ss" , -hh:mm:ss is optional Give complete new code
 
 1. If the cleaned target name already exists in the same folder:
 Compares file sizes.
@@ -122,4 +139,23 @@ For the info display after execution, the text removed from filename should be i
 
 10. When mutiple files have same name (option info, resolution info removed) but have different audio bit rate(not identified from filename, identified from system info), keep all and append "_xxk" to end of filename. copy the extension. If they have same audio bit rate, only keep the one has (shortest) filename with no bit rate info and append  "_xxk" to end of filename.
 
+provide full usage info(list all command options) both in code comment and default(no parameter) command prompt.
  give complete code
+
+
+
+for split_with_ffmpeg.py
+
+0. add switch --dateFrom "yyymmdd-hh:mm:ss" --dateTo "yyymmdd-hh:mm:ss" , -hh:mm:ss is optional Give complete new code
+
+1. 
+
+
+
+
+
+provide full usage info(list all command options) both in code comment and default(no parameter) command prompt.
+ give complete code
+
+
+python "G:\script\split_with_ffmpeg.py" 2 -t "G:\download\critical_parts" -k "關鍵時刻" -e "_part#-2" --maxlength 1:30:00 --minlength 1:00:00
