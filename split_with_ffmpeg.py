@@ -3,6 +3,7 @@ import subprocess
 import sys
 import argparse
 import shutil
+import math
 from datetime import datetime, timedelta
 
 # ----------------------------- LOG DIRECTORY -----------------------------
@@ -21,8 +22,23 @@ SKIP_LOG_PATH = os.path.join(LOG_DIR, "split_with_ffmpeg_skiplog.txt")
 DETAILS_LOG_PATH = os.path.join(LOG_DIR, "split_with_ffmpeg_log_details.txt")
 # -------------------------------------------------------------------------
 
+def parse_size_limit(size_str):
+    """Parse '500MB', '1024MB', '2.5GB' etc. into bytes."""
+    size_str = size_str.strip().upper()
+    if size_str.endswith('GB'):
+        try:
+            return float(size_str[:-2]) * 1024 * 1024 * 1024
+        except ValueError:
+            pass
+    elif size_str.endswith('MB'):
+        try:
+            return float(size_str[:-2]) * 1024 * 1024
+        except ValueError:
+            pass
+    print(f"Error: Invalid --sizeLimit format '{size_str}'. Use e.g. 500MB, 1024MB, 2.5GB")
+    sys.exit(1)
+
 def parse_time_duration(time_str):
-    """Parse hh:mm:ss, mm:ss, :mm:ss, or ss into seconds."""
     if time_str.startswith(':'):
         time_str = '0' + time_str
     try:
@@ -34,15 +50,12 @@ def parse_time_duration(time_str):
             seconds = float(parts[0]) * 60 + float(parts[1])
         elif len(parts) == 3:
             seconds = float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2])
-        else:
-            raise ValueError
         return seconds
     except ValueError:
         print(f"Error: Invalid time format '{time_str}'. Use hh:mm:ss, mm:ss, :mm:ss, or ss.")
         sys.exit(1)
 
 def get_duration(input_file):
-    """Get duration using ffprobe."""
     cmd = [
         'ffprobe', '-v', 'quiet', '-show_entries',
         'format=duration', '-of', 'csv=p=0', input_file
@@ -57,9 +70,9 @@ def get_duration(input_file):
         print(f"Error: Invalid duration for {input_file}")
         sys.exit(1)
 
-def get_file_size_kb(file_path):
+def get_file_size_bytes(file_path):
     try:
-        return os.path.getsize(file_path) // 1024
+        return os.path.getsize(file_path)
     except OSError:
         return 0
 
@@ -70,29 +83,32 @@ def format_duration(seconds):
     minutes, seconds = divmod(remainder, 60)
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
+def format_size(bytes_size):
+    if bytes_size >= 1024 * 1024 * 1024:
+        return f"{bytes_size / (1024**3):.2f} GB"
+    else:
+        return f"{bytes_size / (1024**2):.2f} MB"
+
 def log_action(path, action, reason):
-    """Unified logging for skipped/moved/ignored."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(SKIP_LOG_PATH, "a", encoding="utf-8") as log:
         log.write(f"[{timestamp}] {action} ({reason}): {os.path.abspath(path)}\n")
 
-def log_detailed_completion(source_file, output_parts):
+def log_detailed_completion(source_file, output_parts, n_parts):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     source_abs = os.path.abspath(source_file)
-    total_size_kb = sum(get_file_size_kb(p) for p in output_parts)
+    source_size = get_file_size_bytes(source_file)
     with open(DETAILS_LOG_PATH, "a", encoding="utf-8") as log:
-        log.write(f"[{timestamp}] COMPLETED SPLIT: {source_abs}\n")
-        log.write(f" Source duration: {format_duration(get_duration(source_file))}\n")
-        log.write(f" Parts created: {len(output_parts)}\n")
+        log.write(f"[{timestamp}] COMPLETED SPLIT ({n_parts} parts): {source_abs}\n")
+        log.write(f" Source size: {format_size(source_size)} | Duration: {format_duration(get_duration(source_file))}\n")
+        log.write(f" Parts:\n")
         for part_path in output_parts:
             if os.path.exists(part_path):
+                size_kb = get_file_size_bytes(part_path) // 1024
                 dur = get_duration(part_path)
-                size_kb = get_file_size_kb(part_path)
-                log.write(f" • {os.path.basename(part_path)}\n")
-                log.write(f"   Duration: {format_duration(dur)} | Size: {size_kb:,} KB\n")
+                log.write(f" • {os.path.basename(part_path)} | {format_size(get_file_size_bytes(part_path))} | {format_duration(dur)}\n")
             else:
                 log.write(f" • {os.path.basename(part_path)} [MISSING]\n")
-        log.write(f" Total output size: {total_size_kb:,} KB\n")
         log.write("\n")
 
 def parse_dateafter(date_str):
@@ -104,7 +120,7 @@ def parse_dateafter(date_str):
         else:
             raise ValueError
     except ValueError:
-        print(f"Error: Invalid --dateafter format '{date_str}'. Use yyyymmdd or yyyymmddhhmmss")
+        print(f"Error: Invalid --dateafter format '{date_str}'.")
         sys.exit(1)
 
 def format_part_filename(base_name, ext, part_num, total_parts, pattern):
@@ -123,6 +139,15 @@ def generate_expected_parts(base_name, ext, target_dir, n_parts, pattern):
 def get_existing_parts(expected_parts):
     return [p for p in expected_parts if os.path.exists(p)]
 
+def calculate_parts_from_size(file_size_bytes, size_limit_bytes):
+    """Calculate how many parts needed to keep each under size_limit_bytes."""
+    if file_size_bytes <= size_limit_bytes:
+        return 1
+    # Add small buffer to avoid edge-case overflow
+    safe_limit = size_limit_bytes * 0.98
+    n_parts = math.ceil(file_size_bytes / safe_limit)
+    return max(n_parts, 2)  # At least 2 parts if splitting
+
 def split_with_ffmpeg(input_file, n_parts, target_dir, pattern):
     os.makedirs(target_dir, exist_ok=True)
     base_name, ext = os.path.splitext(os.path.basename(input_file))
@@ -133,10 +158,12 @@ def split_with_ffmpeg(input_file, n_parts, target_dir, pattern):
     if not missing_indices:
         return existing_parts, "already_complete"
 
-    print(f"\nSplitting {os.path.basename(input_file)} into {n_parts} parts...")
     total_duration = get_duration(input_file)
     part_duration = total_duration / n_parts
-    print(f"Duration: {format_duration(total_duration)} → Each ~{format_duration(part_duration)}")
+
+    print(f"\nSplitting {os.path.basename(input_file)} into {n_parts} parts...")
+    print(f"Source: {format_size(get_file_size_bytes(input_file))} | Duration: {format_duration(total_duration)}")
+    print(f"Each part ~{format_duration(part_duration)}")
 
     status = "new"
     if len(existing_parts) > 0:
@@ -163,163 +190,248 @@ def split_with_ffmpeg(input_file, n_parts, target_dir, pattern):
 
     final_parts = get_existing_parts(expected_parts)
     if len(final_parts) == n_parts:
-        log_detailed_completion(input_file, final_parts)
+        log_detailed_completion(input_file, final_parts, n_parts)
         return final_parts, status
     else:
         print(" Warning: Split incomplete.")
         return final_parts, "incomplete"
 
+def expand_source_paths(args):
+    source_paths = []
+    for p in args.path:
+        abs_p = os.path.abspath(p)
+        if os.path.isdir(abs_p):
+            source_paths.append(abs_p)
+        else:
+            print(f"Warning: Source path not found: {abs_p}")
+
+    if args.sourcePaths:
+        for src in args.sourcePaths:
+            if os.path.isfile(src) and src.lower().endswith('.txt'):
+                try:
+                    with open(src, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            line = line.strip()
+                            if line and not line.startswith('#'):
+                                abs_line = os.path.abspath(line)
+                                if os.path.isdir(abs_line):
+                                    source_paths.append(abs_line)
+                except Exception as e:
+                    print(f"Error reading sourcePaths file '{src}': {e}")
+            else:
+                for part in src.split(','):
+                    part = part.strip()
+                    if part:
+                        abs_part = os.path.abspath(part)
+                        if os.path.isdir(abs_part):
+                            source_paths.append(abs_part)
+
+    seen = set()
+    unique_paths = [p for p in source_paths if not (p in seen or seen.add(p))]
+    return unique_paths
+
 def main():
     parser = argparse.ArgumentParser(
         description="""
-Advanced FFmpeg Video Splitter - Corrected Logic
+Advanced FFmpeg Video Splitter
 
---minlength  : Files SHORTER than this → MOVED to target folder
---maxlength  : Files LONGER than this  → IGNORED (skipped)
-Suitable length → SPLIT into parts
+--sizeLimit "500MB" → Auto-calculate number of parts so each is < limit
+Otherwise → Use fixed number of parts from first argument
 
-Examples:
-  Short clips (<50min) → moved
-  Too long (>1:30h)    → skipped
-  50:00 ~ 1:30:00      → split into parts
+Supports multiple sources via -p or --sourcePaths
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument("parts", type=int, help="Number of parts to split suitable files into")
-    parser.add_argument("-k", "--keyword", type=str, default=None, help="Keyword filter (case-insensitive)")
-    parser.add_argument("-p", "--path", type=str, default=".", help="Source directory")
-    parser.add_argument("-t", "--target", type=str, required=True, help="Target directory (REQUIRED for moving short files)")
-    parser.add_argument("--dateafter", type=str, default=None, help="Only files created after yyyymmdd or yyyymmddhhmmss")
+    parser.add_argument("parts", type=int, nargs='?', default=2,
+                        help="Fixed number of parts (ignored if --sizeLimit used)")
+    parser.add_argument("-k", "--keyword", type=str, default=None, help="Keyword filter")
+    parser.add_argument("-p", "--path", action="append", default=[], help="Source directory (multiple allowed)")
+    parser.add_argument("--sourcePaths", action="append", default=[], 
+                        help="paths.txt or 'path1,path2'")
+    parser.add_argument("--targetPath", type=str, required=True, help="Target directory for parts & moved files")
+    parser.add_argument("--dateafter", type=str, default=None, help="Files created after date")
     parser.add_argument("-e", "--exists-pattern", type=str, default="_part_#_of_##", help="Part naming pattern")
-    parser.add_argument("--minlength", type=str, default=None, help="Move files SHORTER than this (hh:mm:ss, mm:ss, ss)")
-    parser.add_argument("--maxlength", type=str, default=None, help="Ignore files LONGER than this (hh:mm:ss, mm:ss, ss)")
+    parser.add_argument("--minlength", type=str, default=None, help="Move if SHORTER than this")
+    parser.add_argument("--maxlength", type=str, default=None, help="Ignore if LONGER than this")
+    parser.add_argument("--sizeLimit", type=str, default=None, help="Max size per part: 500MB, 1024MB, 2.5GB etc.")
+    parser.add_argument("--dry-run", action="store_true", help="Preview only")
 
     args = parser.parse_args()
+
+    if args.dry_run:
+        print("DRY-RUN MODE: No changes will be made.\n")
 
     if "#" not in args.exists_pattern:
         print("Warning: Pattern has no '#' → part numbers may not appear.")
 
-    source_path = os.path.abspath(args.path)
-    if not os.path.isdir(source_path):
-        print(f"Error: Source path not found: {source_path}")
+    if not args.path and not args.sourcePaths:
+        args.path = ["."]
+
+    source_paths = expand_source_paths(args)
+    if not source_paths:
+        print("Error: No valid source directories.")
         sys.exit(1)
 
-    target_dir = os.path.abspath(args.target)
+    target_dir = os.path.abspath(args.targetPath)
     os.makedirs(target_dir, exist_ok=True)
 
     min_creation_dt = parse_dateafter(args.dateafter) if args.dateafter else None
     min_seconds = parse_time_duration(args.minlength) if args.minlength else None
     max_seconds = parse_time_duration(args.maxlength) if args.maxlength else None
+    size_limit_bytes = parse_size_limit(args.sizeLimit) if args.sizeLimit else None
 
-    print(f"Source : {source_path}")
-    print(f"Target : {target_dir}")
-    print(f"Parts  : {args.parts}")
-    print(f"Pattern: {args.exists_pattern}")
+    print(f"TargetPath     : {target_dir}")
+    if size_limit_bytes:
+        print(f"Size limit/part: {args.sizeLimit} ({format_size(size_limit_bytes)})")
+        print(f"→ Number of parts calculated automatically per file")
+    else:
+        print(f"Fixed parts    : {args.parts}")
+    print(f"Pattern        : {args.exists_pattern}")
     if args.minlength:
-        print(f"Move if shorter than : {args.minlength}")
+        print(f"Move if shorter: {args.minlength}")
     if args.maxlength:
-        print(f"Ignore if longer than: {args.maxlength}")
-    print(f"Logs   → {LOG_DIR}\n")
+        print(f"Ignore if longer: {args.maxlength}")
+    print(f"Sources ({len(source_paths)}):")
+    for sp in source_paths:
+        print(f" • {sp}")
+    print(f"Logs → {LOG_DIR}")
+    if args.dry_run:
+        print("\n=== PREVIEW ===\n")
+    else:
+        print()
 
     video_extensions = {'.mp4', '.mkv', '.avi', '.mov', '.webm', '.flv', '.m4v', '.mpg', '.mpeg', '.ts', '.m2ts'}
     candidates = []
 
-    for entry in os.listdir(source_path):
-        fp = os.path.join(source_path, entry)
-        if not os.path.isfile(fp):
-            continue
-        _, ext = os.path.splitext(entry.lower())
-        if ext not in video_extensions:
-            continue
-        if args.keyword and args.keyword.lower() not in entry.lower():
-            continue
-        if min_creation_dt:
-            try:
-                if datetime.fromtimestamp(os.path.getctime(fp)) <= min_creation_dt:
-                    continue
-            except OSError:
-                pass
-        candidates.append(fp)
+    for source_path in source_paths:
+        for entry in os.listdir(source_path):
+            fp = os.path.join(source_path, entry)
+            if not os.path.isfile(fp):
+                continue
+            _, ext = os.path.splitext(entry.lower())
+            if ext not in video_extensions:
+                continue
+            if args.keyword and args.keyword.lower() not in entry.lower():
+                continue
+            if min_creation_dt:
+                try:
+                    if datetime.fromtimestamp(os.path.getctime(fp)) <= min_creation_dt:
+                        continue
+                except OSError:
+                    pass
+            candidates.append(fp)
 
     if not candidates:
         print("No candidate video files found.")
         sys.exit(0)
 
-    print(f"Found {len(candidates)} candidate file(s). Checking durations...\n")
-
-    to_split = []
-    moved_count = 0
-    ignored_count = 0
-    processed = resumed = redone = 0
+    to_move = []
+    to_ignore = []
+    to_split = []  # Will store (file, calculated_parts)
 
     for video_file in candidates:
         duration = get_duration(video_file)
+        size_bytes = get_file_size_bytes(video_file)
+        base_name = os.path.basename(video_file)
+        dur_str = format_duration(duration)
+
+        if max_seconds is not None and duration > max_seconds:
+            to_ignore.append((base_name, dur_str, format_size(size_bytes)))
+            continue
+
+        if min_seconds is not None and duration < min_seconds:
+            to_move.append((base_name, dur_str, format_size(size_bytes)))
+            continue
+
+        if size_limit_bytes:
+            n_parts = calculate_parts_from_size(size_bytes, size_limit_bytes)
+        else:
+            n_parts = args.parts
+
+        base, ext = os.path.splitext(base_name)
+        expected = generate_expected_parts(base, ext, target_dir, n_parts, args.exists_pattern)
+        existing = get_existing_parts(expected)
+
+        if len(existing) == n_parts:
+            to_ignore.append((base_name, dur_str, format_size(size_bytes)))  # treat as skipped
+        else:
+            status = "resume" if existing else "new"
+            to_split.append((video_file, n_parts, status, base_name, dur_str, format_size(size_bytes)))
+
+    # Preview
+    if to_move:
+        print("MOVED (too short):")
+        for name, dur, sz in to_move:
+            print(f" • {name} ({dur}, {sz})")
+        print()
+
+    if to_ignore:
+        print("SKIPPED / IGNORED:")
+        for name, dur, sz in to_ignore:
+            print(f" • {name} ({dur}, {sz})")
+        print()
+
+    if to_split:
+        print("TO BE SPLIT:")
+        for _, n_parts, status, name, dur, sz in to_split:
+            print(f" • {name} ({dur}, {sz}) → {n_parts} parts ({status})")
+        print()
+
+    print("Summary:")
+    print(f"  Move (short) : {len(to_move)}")
+    print(f"  Skip/Ignored : {len(to_ignore)}")
+    print(f"  Split        : {len(to_split)}")
+
+    if args.dry_run:
+        print("\nDry-run complete. Remove --dry-run to execute.")
+        sys.exit(0)
+
+    # Execution
+    print("\n=== EXECUTING ===")
+    moved = ignored = processed = 0
+
+    for video_file in candidates:
+        duration = get_duration(video_file)
+        size_bytes = get_file_size_bytes(video_file)
         base_name = os.path.basename(video_file)
 
-        # Too long → ignore
         if max_seconds is not None and duration > max_seconds:
-            print(f"IGNORED (too long {format_duration(duration)}): {base_name}")
-            log_action(video_file, "IGNORED", f"duration > {args.maxlength}")
-            ignored_count += 1
+            log_action(video_file, "IGNORED", "too long")
+            ignored += 1
             continue
 
-        # Too short → move to target
         if min_seconds is not None and duration < min_seconds:
-            dest_path = os.path.join(target_dir, base_name)
-            if os.path.exists(dest_path):
-                print(f"Short file already in target: {base_name}")
-                log_action(video_file, "SKIPPED", "too short, already in target")
+            dest = os.path.join(target_dir, base_name)
+            if os.path.exists(dest):
+                log_action(video_file, "SKIPPED", "short, already moved")
             else:
                 try:
-                    shutil.move(video_file, dest_path)
-                    print(f"MOVED (short {format_duration(duration)}): {base_name} → target")
-                    log_action(video_file, "MOVED", f"duration < {args.minlength}")
-                    moved_count += 1
+                    shutil.move(video_file, dest)
+                    print(f"MOVED: {base_name}")
+                    log_action(video_file, "MOVED", "too short")
+                    moved += 1
                 except Exception as e:
-                    print(f"Failed to move {base_name}: {e}")
+                    print(f"Move failed: {e}")
             continue
 
-        # Suitable length → will split
-        to_split.append(video_file)
+        n_parts = calculate_parts_from_size(size_bytes, size_limit_bytes) if size_limit_bytes else args.parts
+        base, ext = os.path.splitext(base_name)
+        expected = generate_expected_parts(base, ext, target_dir, n_parts, args.exists_pattern)
+        if len(get_existing_parts(expected)) == n_parts:
+            print(f"SKIPPED: {base_name} (all {n_parts} parts exist)")
+            log_action(video_file, "SKIPPED", "all parts exist")
+            ignored += 1
+            continue
 
-    if not to_split:
-        print("No files qualify for splitting.")
-    else:
-        print(f"{len(to_split)} file(s) will be split:\n" + "\n".join(f" • {os.path.basename(f)}" for f in to_split))
-        print("\nStarting split process...\n")
-
-        for video_file in to_split:
-            base_name, ext = os.path.splitext(os.path.basename(video_file))
-            expected = generate_expected_parts(base_name, ext, target_dir, args.parts, args.exists_pattern)
-            existing = get_existing_parts(expected)
-
-            if len(existing) == args.parts:
-                print(f"Skipping {base_name} – all parts already exist.")
-                log_action(video_file, "SKIPPED", "all parts exist")
-                continue
-
-            final_parts, status = split_with_ffmpeg(video_file, args.parts, target_dir, args.exists_pattern)
-
-            if status == "already_complete":
-                pass
-            elif status == "completed_partial":
-                resumed += 1
-                processed += 1
-            elif status == "redone":
-                redone += 1
-                processed += 1
-            else:  # new or incomplete
-                processed += 1
+        _, status = split_with_ffmpeg(video_file, n_parts, target_dir, args.exists_pattern)
+        processed += 1
 
     print(f"\n=== Finished ===")
-    new_count = processed - resumed - redone
-    print(f" Split processed : {processed} (new: {new_count}, resumed: {resumed}, redone: {redone})")
-    print(f" Moved (short)   : {moved_count}")
-    print(f" Ignored (long)  : {ignored_count}")
-    print(f" Target folder   : {target_dir}")
-    print(f" Logs in         : {LOG_DIR}")
-    print(f" • {os.path.basename(SKIP_LOG_PATH)}")
-    print(f" • {os.path.basename(DETAILS_LOG_PATH)}")
+    print(f" Moved (short)   : {moved}")
+    print(f" Skipped/Ignored : {ignored}")
+    print(f" Split processed : {processed}")
+    print(f" TargetPath      : {target_dir}")
+    print(f" Logs            : {LOG_DIR}")
 
 if __name__ == "__main__":
     main()

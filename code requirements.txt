@@ -150,7 +150,7 @@ for split_with_ffmpeg.py
 
 1. 
 
-
+rename -t to --targetPath, add --sizeLimit "xxMB" xx is any number of digits. the number of splits would be based on the source file size, so each of the splitted parts would be just below the xxMB size. give complete new code.
 
 
 
@@ -158,4 +158,11 @@ provide full usage info(list all command options) both in code comment and defau
  give complete code
 
 
-python "G:\script\split_with_ffmpeg.py" 2 -t "G:\download\critical_parts" -k "關鍵時刻" -e "_part#-2" --maxlength 1:30:00 --minlength 1:00:00
+python "G:\script\split_with_ffmpeg.py" 2 -t "G:\download\critical_parts" -k "關鍵" -e "_part#-2" --maxlength 1:30:00 --minlength 1:00:00
+python "G:\script\audio_converter.py.py" "mp4, m4a" "D:\mp3" 16k -k "關鍵"
+python G:\script\filenames_rename.py -r -l "p.txt" -o "16k" -n "_16k"
+
+python G:\script\filenames_clean.py --cleanOptionInfo --cleanResolutionInfo --cleanBitRateInfo -t "mp3"
+
+python G:\script\filenames_clean.py -r -l "g:\script\clean_paths.txt" -o "16k" -n "_16k"
+
