@@ -1,18 +1,18 @@
 for metadata_modify.py
-0. add switch --dateFrom "yyymmdd-hh:mm:ss" --dateTo "yyymmdd-hh:mm:ss" , -hh:mm:ss is optional Give complete new code
+0. add switch --dateFrom 'yyymmdd-hh:mm:ss' --dateTo 'yyymmdd-hh:mm:ss' , -hh:mm:ss is optional Give complete new code
 
-1.python code to modify metadata for mp3, mp4, m4a, opus etc. --type "mp3, mp4, m4a, opus", --bitrate "128k" --datemodified "yyyymmdd-hh:mm",
+1.python code to modify metadata for mp3, mp4, m4a, opus etc. --type 'mp3, mp4, m4a, opus', --bitrate '128k' --datemodified 'yyyymmdd-hh:mm',
 
 2. info about files has names modified and → should be in green color.
 
-3. --keyword "keyword" or -k "keyword", only show info about related files. those files names doesn't contain keyword shouldn't display.
+3. --keyword 'keyword' or -k 'keyword', only show info about related files. those files names doesn't contain keyword shouldn't display.
 
 4. --recursive (-r) ; add switch --recursive to allow recursive execution. otherwise only work on the specified path or PWD. give complete new code
 
 If provided → processes recursively (all subdirectories).
 If omitted → processes only the top-level directory (no subfolders).
 
-5. -p "path", -l "pathlistfilename.txt" or --path-list "pathlistfilename.txt" to provide directory to work on.
+5. -p 'path', -l 'pathlistfilename.txt' or --path-list 'pathlistfilename.txt' to provide directory to work on.
 
 If neither --path nor --path-list is provided → defaults to the current working directory (PWD).
 --path and --path-list remain mutually exclusive.
@@ -28,21 +28,21 @@ give complete code.
 
 
 for filenames_rename.py
-0. add switch --dateFrom "yyymmdd-hh:mm:ss" --dateTo "yyymmdd-hh:mm:ss" , -hh:mm:ss is optional Give complete new code
+0. add switch --dateFrom 'yyymmdd-hh:mm:ss' --dateTo 'yyymmdd-hh:mm:ss' , -hh:mm:ss is optional Give complete new code
 
 
-1. The files containing "chill city pop $ $ " were having multiple "$ " the code should be able to fix repititions. If repetitions needed, the exact repetitions like "$ $ " would be used instead of "$ ". If there are repetitions, not matching the command line parameter, correct them.
+1. The files containing 'chill city pop $ $ ' were having multiple '$ ' the code should be able to fix repititions. If repetitions needed, the exact repetitions like '$ $ ' would be used instead of '$ '. If there are repetitions, not matching the command line parameter, correct them.
 
 2. info about files has names modified and → should be in green color.
 
-3. --keyword "keyword" or -k "keyword", only show info about related files. those files names doesn't contain keyword shouldn't display.
+3. --keyword 'keyword' or -k 'keyword', only show info about related files. those files names doesn't contain keyword shouldn't display.
 
 4. --recursive or -r ; add switch --recursive to allow recursive execution. otherwise only work on the specified path or PWD. give complete new code
 
 If provided → processes recursively (all subdirectories).
 If omitted → processes only the top-level directory (no subfolders).
 
-5. -p "path", -l "pathlistfilename.txt" or --path-list "pathlistfilename.txt" to provide directory to work on.
+5. -p 'path', -l 'pathlistfilename.txt' or --path-list 'pathlistfilename.txt' to provide directory to work on.
 
 If neither --path nor --path-list is provided → defaults to the current working directory (PWD).
 --path and --path-list remain mutually exclusive.
@@ -61,20 +61,20 @@ provide full usage info(list all command options) both in code comment and defau
 
 
 for filenames_append.py
-0. add switch --dateFrom "yyymmdd-hh:mm:ss" --dateTo "yyymmdd-hh:mm:ss" , -hh:mm:ss is optional Give complete new code
+0. add switch --dateFrom 'yyymmdd-hh:mm:ss' --dateTo 'yyymmdd-hh:mm:ss' , -hh:mm:ss is optional Give complete new code
 
-1. The files containing "chill city pop $ $ " were having multiple "$ " the code should be able to fix repititions. If repetitions needed, the exact repetitions like "$ $ " would be used instead of "$ ". If there are repetitions, not matching the command line parameter, correct them.
+1. The files containing 'chill city pop $ $ ' were having multiple '$ ' the code should be able to fix repititions. If repetitions needed, the exact repetitions like '$ $ ' would be used instead of '$ '. If there are repetitions, not matching the command line parameter, correct them.
 
 2. info about files has names modified and → should be in green color.
 
 3. only show info about related files. those files names doesn't contain keyword shouldn't display.
 
-4. --recursive (-r) ; add switch --recursively "x", x is either y or none 0, to allow recursive execution. ohterwise only work on the specified path or PWD. give complete new code
+4. --recursive (-r) ; add switch --recursively 'x', x is either y or none 0, to allow recursive execution. ohterwise only work on the specified path or PWD. give complete new code
 
 If provided → processes recursively (all subdirectories).
 If omitted → processes only the top-level directory (no subfolders).
 
-5. -p "path", -l "any.txt" or --path-list "any.txt" to provide directory to work on.
+5. -p 'path', -l 'any.txt' or --path-list 'any.txt' to provide directory to work on.
 
 If neither --path nor --path-list is provided → defaults to the current working directory (PWD).
 --path and --path-list remain mutually exclusive.
@@ -100,7 +100,7 @@ provide full usage info(list all command options) both in code comment and defau
 
 for this filenames_clean.py
 
-0. add switch --dateFrom "yyymmdd-hh:mm:ss" --dateTo "yyymmdd-hh:mm:ss" , -hh:mm:ss is optional Give complete new code
+0. add switch --dateFrom 'yyymmdd-hh:mm:ss' --dateTo 'yyymmdd-hh:mm:ss' , -hh:mm:ss is optional Give complete new code
 
 1. If the cleaned target name already exists in the same folder:
 Compares file sizes.
@@ -116,12 +116,12 @@ If the current file is larger → skips renaming (keeps the better one).
 
 4. Shows renames in green, deletions in yellow, errors in red.
 
---recursive (-r) ; add switch --recursively "x", x is either y or none 0, to allow recursive execution. ohterwise only work on the specified path or PWD. give complete new code
+--recursive (-r) ; add switch --recursively 'x', x is either y or none 0, to allow recursive execution. ohterwise only work on the specified path or PWD. give complete new code
 
 If provided → processes recursively (all subdirectories).
 If omitted → processes only the top-level directory (no subfolders).
 
-5. --path "path", -l "any.txt" or --path-list "any.txt" to provide directory to work on.
+5. --path 'path', -l 'any.txt' or --path-list 'any.txt' to provide directory to work on.
 
 If neither --path nor --path-list is provided → defaults to the current working directory (PWD).
 --path and --path-list remain mutually exclusive.
@@ -133,11 +133,11 @@ For the info display after execution, the text removed from filename should be i
 
 7. display full path for the original name before →. Drive letter should show in the full path.
 
-8. Music16k\皇帝圆舞曲_16k.opus → 皇帝圆舞曲__16k.opus this shouldn't be. -o "16k" -n "_16k", the old pattern should be exact match, not a substring. consecutive repetitions of "16k" or "_16k" would together be replaced by "_16k". If repetitions needed, the exact repetitions like "$ $ " would be used instead of "$ ". If there are repetitions, not matching the command line parameter, correct them.
+8. Music16k\皇帝圆舞曲_16k.opus → 皇帝圆舞曲__16k.opus this shouldn't be. -o '16k' -n '_16k', the old pattern should be exact match, not a substring. consecutive repetitions of '16k' or '_16k' would together be replaced by '_16k'. If repetitions needed, the exact repetitions like '$ $ ' would be used instead of '$ '. If there are repetitions, not matching the command line parameter, correct them.
 
-9. The files containing "chill city pop $ $ " were having multiple "$ " the code should be able to fix repetitions. If repetitions needed, the exact repetitions like "$ $ " would be used instead of "$ ". If there are repetitions, not matching the command line parameter, correct them.
+9. The files containing 'chill city pop $ $ ' were having multiple '$ ' the code should be able to fix repetitions. If repetitions needed, the exact repetitions like '$ $ ' would be used instead of '$ '. If there are repetitions, not matching the command line parameter, correct them.
 
-10. When mutiple files have same name (option info, resolution info removed) but have different audio bit rate(not identified from filename, identified from system info), keep all and append "_xxk" to end of filename. copy the extension. If they have same audio bit rate, only keep the one has (shortest) filename with no bit rate info and append  "_xxk" to end of filename.
+10. When mutiple files have same name (option info, resolution info removed) but have different audio bit rate(not identified from filename, identified from system info), keep all and append '_xxk' to end of filename. copy the extension. If they have same audio bit rate, only keep the one has (shortest) filename with no bit rate info and append  '_xxk' to end of filename.
 
 provide full usage info(list all command options) both in code comment and default(no parameter) command prompt.
  give complete code
@@ -146,23 +146,28 @@ provide full usage info(list all command options) both in code comment and defau
 
 for split_with_ffmpeg.py
 
-0. add switch --dateFrom "yyymmdd-hh:mm:ss" --dateTo "yyymmdd-hh:mm:ss" , -hh:mm:ss is optional Give complete new code
+0. add switch --dateFrom 'yyymmdd-hh:mm:ss' --dateTo 'yyymmdd-hh:mm:ss'. -hh:mm:ss is optional
 
-1. 
+1. Python code with following switches, using ffmpeg to split audio and video files into equal smaller parts:
 
-rename -t to --targetPath, add --sizeLimit "xxMB" xx is any number of digits. the number of splits would be based on the source file size, so each of the splitted parts would be just below the xxMB size. give complete new code.
-
-
+--sourcePaths 'path1[, path2, ...]' or --sourcePaths 'sourcepaths.txt';
+--targetPath 'path1[, path2, ...]';
+--sizeLimit 'xxMB' xx is any number of digits. the number of splits would be based on the source file size, so each of the splitted parts would be just below the xxMB size. The source files smaller than the size limit would be skipped;
+-k, --keyword 'keyword';
+'-e', '--exists-pattern', type=str, default='_part_#_of_#';
+--type 'filetype1[, filetype2, ...]'   only file types specified would be processed;
 
 provide full usage info(list all command options) both in code comment and default(no parameter) command prompt.
- give complete code
+ give complete code.
 
 
-python "G:\script\split_with_ffmpeg.py" 2 -t "G:\download\critical_parts" -k "關鍵" -e "_part#-2" --maxlength 1:30:00 --minlength 1:00:00
-python "G:\script\audio_converter.py.py" "mp4, m4a" "D:\mp3" 16k -k "關鍵"
-python G:\script\filenames_rename.py -r -l "p.txt" -o "16k" -n "_16k"
 
-python G:\script\filenames_clean.py --cleanOptionInfo --cleanResolutionInfo --cleanBitRateInfo -t "mp3"
 
-python G:\script\filenames_clean.py -r -l "g:\script\clean_paths.txt" -o "16k" -n "_16k"
+python 'G:\script\split_with_ffmpeg.py' 2 -t 'G:\download\critical_parts' -k '關鍵' -e '_part#-2' --maxlength 1:30:00 --minlength 1:00:00
+python 'G:\script\audio_converter.py.py' 'mp4, m4a' 'D:\mp3' 16k -k '關鍵'
+python G:\script\filenames_rename.py -r -l 'p.txt' -o '16k' -n '_16k'
+
+python G:\script\filenames_clean.py --cleanOptionInfo --cleanResolutionInfo --cleanBitRateInfo -t 'mp3'
+
+python G:\script\filenames_clean.py -r -l 'g:\script\clean_paths.txt' -o '16k' -n '_16k'
 
